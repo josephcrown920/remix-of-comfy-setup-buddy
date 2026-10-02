@@ -22,7 +22,8 @@ export async function askAi(system: string, messages: ModelMessage[], effort: "l
       openai: { store: false, forceReasoning: true, reasoningEffort: effort, reasoningSummary: "auto", include: ["reasoning.encrypted_content"] },
     },
   });
-  const text = await result.text.catch((e) => { failure = e; return ""; });
+  let text = "";
+  try { text = await result.text; } catch (e) { failure = e; }
   if (failure) throw friendlyAiError(failure);
   if (!text.trim()) throw new Error("The assistant returned an empty answer. Please try again.");
   return text;
