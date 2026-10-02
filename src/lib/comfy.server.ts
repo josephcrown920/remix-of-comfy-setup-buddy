@@ -72,6 +72,15 @@ export function verifyMedia(outputId: string, exp: string, sig: string) {
   return timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
 }
 
+/** Token that lets an anonymous app visitor check only the run they started. */
+export function signRun(jobId: number) {
+  return createHmac("sha256", secret()).update(`run.${jobId}`).digest("hex");
+}
+export function verifyRun(jobId: number, token: string) {
+  if (!/^[a-f0-9]{64}$/.test(token)) return false;
+  return timingSafeEqual(Buffer.from(token), Buffer.from(signRun(jobId)));
+}
+
 type HistoryOutput = { filename: string; subfolder?: string; type?: string };
 
 /** Pull status + outputs for a prompt from ComfyUI's /history and /queue. */
