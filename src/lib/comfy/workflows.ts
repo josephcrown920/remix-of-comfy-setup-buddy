@@ -1177,7 +1177,7 @@ export const WORKFLOWS: WorkflowDef[] = [
 
 export type WorkflowParam = {
   key: string; label: string; type: string; description?: string | null;
-  required?: boolean; defaultValue?: unknown; options?: string[] | null;
+  required?: boolean | null; defaultValue?: string | number | boolean | null; options?: string[] | null;
   min?: number | null; max?: number | null; accept?: string | null;
 };
 export type WorkflowDef = {

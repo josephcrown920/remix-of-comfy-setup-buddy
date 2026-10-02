@@ -85,5 +85,5 @@ export function StatusPill({ status }: { status: string }) {
     failed: "bg-destructive/15 text-destructive",
     cancelled: "bg-muted text-muted-foreground",
   };
-  return <span className={`inline-flex rounded-full px-2.5 py-0.5 font-mono text-xs ${tone[status] ?? tone.cancelled}`}>{status}</span>;
+  return <span className={`inline-flex rounded-full px-2.5 py-0.5 font-mono text-xs ${tone[status] ?? tone["cancelled"]}`}>{status}</span>;
 }

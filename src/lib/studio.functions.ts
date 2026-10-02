@@ -34,7 +34,7 @@ function shapeJob(job: any, outputs: any[]) {
     workflowId: job.workflow_id as string,
     workflowName: job.workflow_name as string,
     status: job.status as string,
-    params: job.params as Record<string, unknown>,
+    params: job.params as Record<string, string | number | boolean | null>,
     progress: (job.progress as number) ?? 0,
     errorMessage: (job.error_message as string) ?? null,
     workerLabel: (job.worker_label as string) ?? null,
