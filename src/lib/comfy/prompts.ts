@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ComfyUI prompt-graph builders (ported verbatim from the original app).
 /* eslint-disable */
 /**
