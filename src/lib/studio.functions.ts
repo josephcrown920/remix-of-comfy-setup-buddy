@@ -198,7 +198,7 @@ export const getComfyModels = createServerFn({ method: "GET" })
 
 // ---------- workflows ----------
 export const listWorkflows = createServerFn({ method: "GET" }).handler(async () =>
-  WORKFLOWS.filter((w) => !String(w.id).startsWith("modelark")).map((w) => ({
+  WORKFLOWS.filter((w) => !String(w.id).startsWith("modelark") && w.id !== "perform-anywhere-seedance").map((w) => ({
     id: w.id, name: w.name, description: w.description, category: w.category,
     estimatedTime: (w.estimatedTime as string) ?? null, params: w.params,
   })),
