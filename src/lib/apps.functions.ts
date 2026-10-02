@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { WORKFLOWS } from "@/lib/comfy/workflows";
 import { buildComfyPrompt } from "@/lib/comfy/prompts";
+import { routePrompt } from "@/lib/router.server";
 import { fetchComfy, inspectPrompt, signMedia, signRun, verifyRun } from "@/lib/comfy.server";
 
 const appInput = z.object({
@@ -121,12 +122,63 @@ export const runPublicApp = createServerFn({ method: "POST" })
     if (missing.length) throw new Error(`Still needed: ${missing.map((m) => m.label).join(", ")}`);
 
     const { data: s } = await admin.from("user_settings").select("*").eq("user_id", app.owner_id).maybeSingle();
+    const ckpt = (s?.model_assignments as any)?.workflows?.[data.workflowId]?.checkpoint;
+    return JSON.stringify(buildComfyPrompt(data.workflowId, ckpt ? { ...data.params, checkpoint: ckpt } : data.params), null, 2);
+  });
+
+// ---------- public (visitors of a shared app) ----------
+async function loadPublished(slug: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: app } = await supabaseAdmin.from("workflow_apps").select("*").eq("slug", slug).eq("is_published", true).maybeSingle();
+  if (!app) throw new Error("This app isn't available.");
+  const wf = WORKFLOWS.find((w) => w.id === app.workflow_id);
+  if (!wf) throw new Error("This app's workflow no longer exists.");
+  return { admin: supabaseAdmin, app, wf };
+}
+
+export const getPublicApp = createServerFn({ method: "GET" })
+  .inputValidator((d) => z.object({ slug: z.string().max(60) }).parse(d))
+  .handler(async ({ data }) => {
+    try {
+      const { app, wf } = await loadPublished(data.slug);
+      const exposed = app.exposed_keys as string[];
+      const preset = app.preset_params as Record<string, unknown>;
+      return {
+        found: true as const, name: app.name as string, description: (app.description as string) || wf.description,
+        workflowId: wf.id, workflowName: wf.name, allowEmbed: app.allow_embed as boolean,
+        fields: wf.params.filter((p) => exposed.includes(p.key)).map((p) => ({ ...p, defaultValue: (preset[p.key] as any) ?? p.defaultValue ?? null })),
+      };
+    } catch {
+      return { found: false as const };
+    }
+  });
+
+export const runPublicApp = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ slug: z.string().max(60), values: z.record(z.unknown()) }).parse(d))
+  .handler(async ({ data }) => {
+    const { admin, app, wf } = await loadPublished(data.slug);
+    const since = new Date(Date.now() - 60_000).toISOString();
+    const { count: recent } = await admin.from("jobs").select("id", { count: "exact", head: true }).eq("app_id", app.id).gte("created_at", since);
+    const { count: active } = await admin.from("jobs").select("id", { count: "exact", head: true }).eq("app_id", app.id).in("status", ["pending", "running"]);
+    if ((recent ?? 0) >= 6 || (active ?? 0) >= 4) throw new Error("This app is busy right now — try again in a minute.");
+
+    const exposed = new Set(app.exposed_keys as string[]);
+    const params: Record<string, unknown> = { ...(app.preset_params as Record<string, unknown>) };
+    for (const [k, v] of Object.entries(data.values)) if (exposed.has(k)) params[k] = typeof v === "string" ? v.slice(0, 4000) : v;
+    const missing = wf.params.filter((p) => p.required && (params[p.key] === undefined || params[p.key] === ""));
+    if (missing.length) throw new Error(`Still needed: ${missing.map((m) => m.label).join(", ")}`);
+
+    const { data: s } = await admin.from("user_settings").select("*").eq("user_id", app.owner_id).maybeSingle();
     const gpus = ((s?.saved_gpus as any[]) ?? []) as { id: number; label: string; url: string }[];
     const sel = s?.routing_mode === "manual" ? gpus.find((g) => g.id === s?.selected_gpu_id) : undefined;
     const worker = sel ?? (s?.comfy_url ? { id: null, label: "Primary", url: s.comfy_url as string } : gpus[0]);
     if (!worker) throw new Error("The app owner hasn't connected a GPU yet.");
     const ckpt = (s?.model_assignments as any)?.workflows?.[wf.id]?.checkpoint;
     const prompt = buildComfyPrompt(wf.id, ckpt ? { ...params, checkpoint: ckpt } : params);
+    const worker = (await routePrompt({
+      comfyUrl: (s?.comfy_url as string) ?? "", routingMode: (s?.routing_mode as string) ?? "auto",
+      selectedGpuId: (s?.selected_gpu_id as number | null) ?? null, savedGpus: ((s?.saved_gpus as any[]) ?? []),
+    }, prompt).catch(() => { throw new Error("The GPU behind this app is offline or busy right now."); })).worker;
 
     const r = await fetchComfy(worker.url, "/prompt", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt }) })
       .catch(() => { throw new Error("The GPU behind this app is offline."); });
