@@ -14,16 +14,256 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      batches: {
+        Row: {
+          batch_type: string
+          cancelled_jobs: number
+          completed_at: string | null
+          completed_jobs: number
+          created_at: string
+          failed_jobs: number
+          id: number
+          legacy_owner_id: string | null
+          name: string
+          owner_id: string
+          settings: Json
+          status: string
+          total_jobs: number
+        }
+        Insert: {
+          batch_type: string
+          cancelled_jobs?: number
+          completed_at?: string | null
+          completed_jobs?: number
+          created_at?: string
+          failed_jobs?: number
+          id?: number
+          legacy_owner_id?: string | null
+          name: string
+          owner_id?: string
+          settings?: Json
+          status?: string
+          total_jobs: number
+        }
+        Update: {
+          batch_type?: string
+          cancelled_jobs?: number
+          completed_at?: string | null
+          completed_jobs?: number
+          created_at?: string
+          failed_jobs?: number
+          id?: number
+          legacy_owner_id?: string | null
+          name?: string
+          owner_id?: string
+          settings?: Json
+          status?: string
+          total_jobs?: number
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          batch_id: number | null
+          batch_index: number | null
+          comfy_prompt_id: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: number
+          legacy_owner_id: string | null
+          owner_id: string
+          params: Json
+          progress: number | null
+          started_at: string | null
+          status: string
+          worker_id: number | null
+          worker_label: string | null
+          worker_url: string | null
+          workflow_id: string
+          workflow_name: string
+        }
+        Insert: {
+          batch_id?: number | null
+          batch_index?: number | null
+          comfy_prompt_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: number
+          legacy_owner_id?: string | null
+          owner_id?: string
+          params?: Json
+          progress?: number | null
+          started_at?: string | null
+          status?: string
+          worker_id?: number | null
+          worker_label?: string | null
+          worker_url?: string | null
+          workflow_id: string
+          workflow_name: string
+        }
+        Update: {
+          batch_id?: number | null
+          batch_index?: number | null
+          comfy_prompt_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: number
+          legacy_owner_id?: string | null
+          owner_id?: string
+          params?: Json
+          progress?: number | null
+          started_at?: string | null
+          status?: string
+          worker_id?: number | null
+          worker_label?: string | null
+          worker_url?: string | null
+          workflow_id?: string
+          workflow_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outputs: {
+        Row: {
+          created_at: string
+          filename: string
+          id: number
+          job_id: number
+          legacy_owner_id: string | null
+          output_type: string
+          owner_id: string
+          subfolder: string
+        }
+        Insert: {
+          created_at?: string
+          filename: string
+          id?: number
+          job_id: number
+          legacy_owner_id?: string | null
+          output_type?: string
+          owner_id?: string
+          subfolder?: string
+        }
+        Update: {
+          created_at?: string
+          filename?: string
+          id?: number
+          job_id?: number
+          legacy_owner_id?: string | null
+          output_type?: string
+          owner_id?: string
+          subfolder?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outputs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_workflows: {
+        Row: {
+          created_at: string
+          id: number
+          json: string
+          legacy_owner_id: string | null
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          json: string
+          legacy_owner_id?: string | null
+          name: string
+          owner_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          json?: string
+          legacy_owner_id?: string | null
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          comfy_url: string
+          model_assignments: Json
+          routing_mode: string
+          saved_gpus: Json
+          selected_gpu_id: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comfy_url?: string
+          model_assignments?: Json
+          routing_mode?: string
+          saved_gpus?: Json
+          selected_gpu_id?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comfy_url?: string
+          model_assignments?: Json
+          routing_mode?: string
+          saved_gpus?: Json
+          selected_gpu_id?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +390,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
