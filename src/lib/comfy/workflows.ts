@@ -1173,6 +1173,7 @@ export const WORKFLOWS: WorkflowDef[] = [
       },
     ],
   },
+];
 
 export type WorkflowParam = {
   key: string; label: string; type: string; description?: string | null;
