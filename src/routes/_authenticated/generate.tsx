@@ -1,20 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, Clock, Loader2, Upload, CheckCircle2, Play } from "lucide-react";
+import { ArrowLeft, Clock, Loader2, Play, Download, FileJson, AppWindow, FileUp } from "lucide-react";
 import { createJob, listWorkflows } from "@/lib/studio.functions";
+import { exportComfyGraph } from "@/lib/apps.functions";
+import { ParamField, studioUploader, downloadJson, PORTABLE_FORMAT } from "@/components/studio/param-field";
 import type { WorkflowParam } from "@/lib/comfy/workflows";
 import { PageHeader } from "@/components/studio/shell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WORKFLOW_THUMBNAILS } from "@/lib/thumbnails";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,6 +44,7 @@ function Generate() {
   return (
     <>
       <PageHeader eyebrow="Templates" title="Workflows" description="Pick a template — Aurora builds the ComfyUI graph for you." />
+      <ImportButton onOpen={(id) => navigate({ search: { workflow: id } })} />
       <div className="mb-6 flex flex-wrap gap-2">
         <button onClick={() => navigate({ search: {} })} className={`rounded-full border px-3 py-1 text-sm ${!category ? "border-primary text-primary" : "text-muted-foreground"}`}>All</button>
         {categories.map((c) => (
@@ -88,6 +85,21 @@ function defaults(params: WorkflowParam[]) {
 function WorkflowForm({ wf, onBack }: { wf: Wf; onBack: () => void }) {
   const navigate = useNavigate();
   const [values, setValues] = useState<Record<string, unknown>>(() => defaults(wf.params));
+  useEffect(() => {
+    const raw = sessionStorage.getItem("aurora-import");
+    if (!raw) return;
+    sessionStorage.removeItem("aurora-import");
+    try {
+      const j = JSON.parse(raw) as { workflowId: string; params: Record<string, unknown> };
+      if (j.workflowId === wf.id) { setValues((v) => ({ ...v, ...j.params })); toast.success("Imported settings loaded"); }
+    } catch { /* ignore */ }
+  }, [wf.id]);
+  const graph = useServerFn(exportComfyGraph);
+  const upload = useMemo(() => studioUploader(async () => (await supabase.auth.getSession()).data.session?.access_token ?? ""), []);
+  async function exportGraph() {
+    try { downloadJson(`${wf.id}-comfyui-api.json`, await graph({ data: { workflowId: wf.id, params: values } })); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Export failed"); }
+  }
   const submit = useServerFn(createJob);
   const mutation = useMutation({
     mutationFn: () => submit({ data: { workflowId: wf.id, params: values } }),
@@ -109,92 +121,56 @@ function WorkflowForm({ wf, onBack }: { wf: Wf; onBack: () => void }) {
           <h1 className="mt-2 text-3xl">{wf.name}</h1>
           <p className="mt-2 text-muted-foreground">{wf.description}</p>
           <form className="mt-8 space-y-6" onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }}>
-            {wf.params.map((p) => <Field key={p.key} p={p} value={values[p.key]} onChange={(v) => set(p.key, v)} />)}
+            {wf.params.map((p) => <ParamField key={p.key} p={p} value={values[p.key]} onChange={(v) => set(p.key, v)} upload={upload} />)}
             <Button type="submit" size="lg" disabled={mutation.isPending || missing.length > 0} className="w-full md:w-auto">
               {mutation.isPending ? <Loader2 className="animate-spin" /> : <Play />} Render
             </Button>
             {missing.length > 0 && <p className="text-xs text-muted-foreground">Still needed: {missing.map((m) => m.label).join(", ")}</p>}
           </form>
         </div>
-        <img src={WORKFLOW_THUMBNAILS[wf.id] ?? WORKFLOW_THUMBNAILS["custom-workflow"]} alt="" className="panel hidden w-full object-cover lg:block lg:max-h-[480px]" />
+        <div className="space-y-4">
+          <img src={WORKFLOW_THUMBNAILS[wf.id] ?? WORKFLOW_THUMBNAILS["custom-workflow"]} alt="" className="panel hidden w-full object-cover lg:block lg:max-h-[360px]" />
+          <div className="panel space-y-2 p-5">
+            <div className="eyebrow">Share &amp; port</div>
+            <Button variant="secondary" className="w-full justify-start" onClick={() => { sessionStorage.setItem("aurora-app-draft", JSON.stringify({ workflowId: wf.id, params: values })); navigate({ to: "/apps" }); }}><AppWindow /> Turn into an app</Button>
+            <Button variant="outline" className="w-full justify-start" onClick={() => downloadJson(`${wf.id}.aurora.json`, { format: PORTABLE_FORMAT, version: 1, workflowId: wf.id, name: wf.name, params: values })}><Download /> Export settings file</Button>
+            <Button variant="outline" className="w-full justify-start" onClick={exportGraph}><FileJson /> Export ComfyUI graph</Button>
+            <p className="text-xs text-muted-foreground">The ComfyUI graph opens in ComfyUI (Load → API format) or any app that talks to ComfyUI.</p>
+          </div>
+        </div>
       </div>
     </>
   );
 }
 
-function Field({ p, value, onChange }: { p: WorkflowParam; value: unknown; onChange: (v: unknown) => void }) {
-  const label = (
-    <div>
-      <Label className="text-sm font-semibold">{p.label}{p.required && <span className="text-primary"> *</span>}</Label>
-      {p.description && <p className="mt-0.5 text-xs text-muted-foreground">{p.description}</p>}
-    </div>
-  );
-  switch (p.type) {
-    case "file":
-      return <div className="space-y-2">{label}<FileField accept={p.accept ?? undefined} value={value as string | undefined} onChange={onChange} /></div>;
-    case "textarea":
-    case "json":
-      return <div className="space-y-2">{label}<Textarea rows={p.type === "json" ? 10 : 4} className="font-mono text-xs" value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} /></div>;
-    case "select":
-      return (
-        <div className="space-y-2">{label}
-          <Select value={String(value ?? "")} onValueChange={onChange}>
-            <SelectTrigger className="rounded-xl"><SelectValue placeholder="Choose…" /></SelectTrigger>
-            <SelectContent>{(p.options ?? []).map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-          </Select>
-        </div>
-      );
-    case "slider": {
-      const n = Number(value ?? p.min ?? 0);
-      return (
-        <div className="space-y-3">
-          <div className="flex items-end justify-between">{label}<span className="font-mono text-sm text-primary">{n}</span></div>
-          <Slider min={p.min ?? 0} max={p.max ?? 100} step={1} value={[n]} onValueChange={([v]) => onChange(v)} />
-        </div>
-      );
-    }
-    case "number":
-      return <div className="space-y-2">{label}<Input type="number" min={p.min ?? undefined} max={p.max ?? undefined} value={(value as string | number) ?? ""} onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))} /></div>;
-    case "boolean":
-      return <div className="flex items-center justify-between gap-4">{label}<Switch checked={!!value && value !== "false"} onCheckedChange={onChange} /></div>;
-    default:
-      return <div className="space-y-2">{label}{p.key.includes("prompt") ? <Textarea rows={3} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} /> : <Input value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} />}</div>;
-  }
-}
-
-function FileField({ accept, value, onChange }: { accept?: string | undefined; value?: string | undefined; onChange: (v: string) => void }) {
-  const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  async function upload(file: File) {
-    setBusy(true);
+function ImportButton({ onOpen }: { onOpen: (workflowId: string) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  async function read(file: File) {
     try {
-      const { data } = await supabase.auth.getSession();
-      const fd = new FormData();
-      fd.append("file", file);
-      const r = await fetch("/api/upload", { method: "POST", body: fd, headers: { Authorization: `Bearer ${data.session?.access_token ?? ""}` } });
-      const j = (await r.json()) as { name?: string; error?: string };
-      if (!r.ok || !j.name) throw new Error(j.error ?? "Upload failed");
-      onChange(j.name);
-      if (file.type.startsWith("image/")) setPreview(URL.createObjectURL(file));
-      toast.success("Uploaded to your GPU");
+      const j = JSON.parse(await file.text()) as any;
+      if (j?.format === PORTABLE_FORMAT && typeof j.workflowId === "string") {
+        sessionStorage.setItem("aurora-import", JSON.stringify({ workflowId: j.workflowId, params: j.params ?? {} }));
+        return onOpen(j.workflowId);
+      }
+      if (j?.format === "aurora-studio/app" && typeof j.workflowId === "string") {
+        sessionStorage.setItem("aurora-import", JSON.stringify({ workflowId: j.workflowId, params: j.presetParams ?? {} }));
+        return onOpen(j.workflowId);
+      }
+      if (Array.isArray(j?.nodes)) throw new Error("That's a ComfyUI editor file. In ComfyUI use Workflow → Export (API) and import that instead.");
+      if (j && typeof j === "object" && Object.values(j).some((n: any) => n?.class_type)) {
+        sessionStorage.setItem("aurora-import", JSON.stringify({ workflowId: "custom-workflow", params: { workflow_json: JSON.stringify(j, null, 2) } }));
+        return onOpen("custom-workflow");
+      }
+      throw new Error("Unrecognised workflow file.");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setBusy(false);
+      toast.error(e instanceof Error ? e.message : "Couldn't read that file");
     }
   }
   return (
-    <label className="flex cursor-pointer items-center gap-4 rounded-xl border border-dashed border-input p-4 transition-colors hover:border-primary/60">
-      <input type="file" accept={accept} className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
-      {preview ? <img src={preview} alt="" className="h-14 w-14 rounded-lg object-cover" /> : (
-        <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-muted">
-          {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : value ? <CheckCircle2 className="h-5 w-5 text-primary" /> : <Upload className="h-5 w-5 text-muted-foreground" />}
-        </div>
-      )}
-      <div className="min-w-0 text-sm">
-        <div className="font-medium">{busy ? "Uploading…" : value ? "Replace file" : "Choose a file"}</div>
-        <div className="truncate text-xs text-muted-foreground">{value ?? accept ?? "Any file"}</div>
-      </div>
-    </label>
+    <div className="mb-4">
+      <input ref={ref} type="file" accept=".json,application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) read(f); e.target.value = ""; }} />
+      <Button variant="outline" size="sm" onClick={() => ref.current?.click()}><FileUp /> Import workflow file</Button>
+      <span className="ml-3 text-xs text-muted-foreground">Accepts Aurora files or ComfyUI API-format JSON.</span>
+    </div>
   );
 }

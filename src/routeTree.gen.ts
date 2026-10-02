@@ -18,6 +18,7 @@ import { Route as AuthenticatedGalleryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedGenerateRouteImport } from './routes/_authenticated/generate'
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as ApiAppUploadRouteImport } from './routes/api/app-upload'
 import { Route as ApiMediaRouteImport } from './routes/api/media'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 
@@ -65,6 +66,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiAppUploadRoute = ApiAppUploadRouteImport.update({
+  id: '/api/app-upload',
+  path: '/api/app-upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMediaRoute = ApiMediaRouteImport.update({
   id: '/api/media',
   path: '/api/media',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/generate': typeof AuthenticatedGenerateRoute
   '/jobs': typeof AuthenticatedJobsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
 }
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/generate': typeof AuthenticatedGenerateRoute
   '/jobs': typeof AuthenticatedJobsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
 }
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/_authenticated/generate': typeof AuthenticatedGenerateRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
 }
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/generate'
     | '/jobs'
     | '/settings'
+    | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
   fileRoutesByTo: FileRoutesByTo
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/generate'
     | '/jobs'
     | '/settings'
+    | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
   id:
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/_authenticated/generate'
     | '/_authenticated/jobs'
     | '/_authenticated/settings'
+    | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
   fileRoutesById: FileRoutesById
@@ -159,6 +171,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiAppUploadRoute: typeof ApiAppUploadRoute
   ApiMediaRoute: typeof ApiMediaRoute
   ApiUploadRoute: typeof ApiUploadRoute
 }
@@ -228,6 +241,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/app-upload': {
+      id: '/api/app-upload'
+      path: '/api/app-upload'
+      fullPath: '/api/app-upload'
+      preLoaderRoute: typeof ApiAppUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/media': {
       id: '/api/media'
       path: '/api/media'
@@ -269,6 +289,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiAppUploadRoute: ApiAppUploadRoute,
   ApiMediaRoute: ApiMediaRoute,
   ApiUploadRoute: ApiUploadRoute,
 }
