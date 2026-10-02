@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { WORKFLOWS } from "@/lib/comfy/workflows";
 import { buildComfyPrompt } from "@/lib/comfy/prompts";
+import { routePrompt } from "@/lib/router.server";
 import { fetchComfy, inspectPrompt, redactUrl, signMedia, validateComfyTarget } from "@/lib/comfy.server";
 
 type SavedGpu = { id: number; label: string; url: string };
@@ -230,7 +231,7 @@ export const createJob = createServerFn({ method: "POST" })
       const ckpt = s.modelAssignments?.workflows?.[wf.id]?.checkpoint;
       prompt = buildComfyPrompt(wf.id, ckpt ? { ...data.params, checkpoint: ckpt } : data.params);
     }
-    const worker = pickWorker(s, data.workerId);
+    const worker = (await routePrompt(s, prompt, data.workerId)).worker;
     let promptId: string | null = null;
     let status = "pending";
     try {

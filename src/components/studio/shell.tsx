@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { AppWindow, LayoutDashboard, Boxes, ListVideo, Images, Settings2, Menu, X, LogOut } from "lucide-react";
+import { AppWindow, Bot, LayoutDashboard, Boxes, ListVideo, Images, Settings2, Menu, X, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "./logo";
 
@@ -8,6 +8,7 @@ const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/generate", label: "Workflows", icon: Boxes },
   { to: "/apps", label: "Apps", icon: AppWindow },
+  { to: "/assistant", label: "Assistant", icon: Bot },
   { to: "/jobs", label: "Jobs", icon: ListVideo },
   { to: "/gallery", label: "Gallery", icon: Images },
   { to: "/settings", label: "Settings", icon: Settings2 },

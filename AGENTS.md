@@ -15,3 +15,5 @@
 - Workflow catalog and prompt builders in `src/lib/comfy/` are ported verbatim from the original app; edit there, not in pages.
 - Settings are per user (`user_settings`), not global, so each account connects its own GPU.
 - Public workflow apps (`/a/$slug`) run on the app owner's GPU via server functions using the admin client after checking `is_published`; visitors poll only their own run with an HMAC run token, and runs are rate-limited per app.
+- GPU selection goes through `routePrompt` in `src/lib/router.server.ts` (probe health + required nodes, least-busy wins) so every render path routes the same way.
+- AI features (assistant, video agent) call Lovable AI via `src/lib/ai-gateway.server.ts`, server-side only, so prompts and keys never reach the browser.

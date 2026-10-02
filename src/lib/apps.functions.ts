@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { WORKFLOWS } from "@/lib/comfy/workflows";
 import { buildComfyPrompt } from "@/lib/comfy/prompts";
+import { routePrompt } from "@/lib/router.server";
 import { fetchComfy, inspectPrompt, signMedia, signRun, verifyRun } from "@/lib/comfy.server";
 
 const appInput = z.object({
@@ -121,12 +122,12 @@ export const runPublicApp = createServerFn({ method: "POST" })
     if (missing.length) throw new Error(`Still needed: ${missing.map((m) => m.label).join(", ")}`);
 
     const { data: s } = await admin.from("user_settings").select("*").eq("user_id", app.owner_id).maybeSingle();
-    const gpus = ((s?.saved_gpus as any[]) ?? []) as { id: number; label: string; url: string }[];
-    const sel = s?.routing_mode === "manual" ? gpus.find((g) => g.id === s?.selected_gpu_id) : undefined;
-    const worker = sel ?? (s?.comfy_url ? { id: null, label: "Primary", url: s.comfy_url as string } : gpus[0]);
-    if (!worker) throw new Error("The app owner hasn't connected a GPU yet.");
     const ckpt = (s?.model_assignments as any)?.workflows?.[wf.id]?.checkpoint;
     const prompt = buildComfyPrompt(wf.id, ckpt ? { ...params, checkpoint: ckpt } : params);
+    const worker = (await routePrompt({
+      comfyUrl: (s?.comfy_url as string) ?? "", routingMode: (s?.routing_mode as string) ?? "auto",
+      selectedGpuId: (s?.selected_gpu_id as number | null) ?? null, savedGpus: ((s?.saved_gpus as any[]) ?? []),
+    }, prompt).catch(() => { throw new Error("The GPU behind this app is offline or busy right now."); })).worker;
 
     const r = await fetchComfy(worker.url, "/prompt", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt }) })
       .catch(() => { throw new Error("The GPU behind this app is offline."); });
