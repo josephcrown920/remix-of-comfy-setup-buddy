@@ -1,0 +1,65 @@
+[
+ {
+  "capability": "code: shell, dashboard, workflows/generate, jobs, gallery, settings",
+  "source": "artifacts/comfyui-studio",
+  "outcome": "migrate",
+  "status": "done",
+  "next_action": "rebuild on TanStack"
+ },
+ {
+  "capability": "code: batches, perform-anywhere, gpu-hub, assistant, models, launch, guide, admin",
+  "source": "artifacts/comfyui-studio",
+  "outcome": "migrate",
+  "status": "pending",
+  "next_action": "later phases"
+ },
+ {
+  "capability": "schema: settings, jobs, outputs, batches, saved_workflows, resource_usage",
+  "source": "lib/db (Postgres/Drizzle)",
+  "outcome": "migrate",
+  "status": "done",
+  "next_action": "Lovable Cloud migration"
+ },
+ {
+  "capability": "records",
+  "source": "Replit Postgres",
+  "outcome": "migrate",
+  "status": "pending",
+  "next_action": "request CSV export"
+ },
+ {
+  "capability": "auth identities",
+  "source": "Clerk",
+  "outcome": "migrate",
+  "status": "partial",
+  "next_action": "email+Google sign-in live; import Clerk users after export"
+ },
+ {
+  "capability": "authorization: admin via ADMIN_EMAILS/IDS",
+  "source": "access-control.ts",
+  "outcome": "migrate",
+  "status": "partial",
+  "next_action": "email+Google sign-in live; import Clerk users after export"
+ },
+ {
+  "capability": "ComfyUI proxy",
+  "source": "routes/comfy.ts",
+  "outcome": "migrate",
+  "status": "done",
+  "next_action": "server functions"
+ },
+ {
+  "capability": "providers: RunPod, Vast.ai, BytePlus ModelArk, OpenAI assistant, object storage",
+  "source": "api-server",
+  "outcome": "preserve",
+  "status": "pending",
+  "next_action": "later phases + secrets"
+ },
+ {
+  "capability": "verification",
+  "source": "-",
+  "outcome": "verify",
+  "status": "pending",
+  "next_action": "after phases"
+ }
+]
