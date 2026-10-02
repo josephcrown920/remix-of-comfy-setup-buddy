@@ -162,7 +162,7 @@ function Field({ p, value, onChange }: { p: WorkflowParam; value: unknown; onCha
   }
 }
 
-function FileField({ accept, value, onChange }: { accept?: string; value?: string; onChange: (v: string) => void }) {
+function FileField({ accept, value, onChange }: { accept?: string | undefined; value?: string | undefined; onChange: (v: string) => void }) {
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   async function upload(file: File) {
