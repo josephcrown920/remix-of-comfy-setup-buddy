@@ -97,7 +97,7 @@ function WorkflowForm({ wf, onBack }: { wf: Wf; onBack: () => void }) {
   const graph = useServerFn(exportComfyGraph);
   const upload = useMemo(() => studioUploader(async () => (await supabase.auth.getSession()).data.session?.access_token ?? ""), []);
   async function exportGraph() {
-    try { downloadJson(`${wf.id}-comfyui-api.json`, await graph({ data: { workflowId: wf.id, params: values } })); }
+    try { downloadJson(`${wf.id}-comfyui-api.json`, JSON.parse(await graph({ data: { workflowId: wf.id, params: values } }))); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Export failed"); }
   }
   const submit = useServerFn(createJob);

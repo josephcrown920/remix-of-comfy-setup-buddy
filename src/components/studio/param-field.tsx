@@ -83,7 +83,7 @@ function FileField({ accept, value, onChange, upload }: { accept?: string | unde
 }
 
 async function postUpload(url: string, fd: FormData, headers?: Record<string, string>) {
-  const r = await fetch(url, { method: "POST", body: fd, headers });
+  const r = await fetch(url, { method: "POST", body: fd, headers: headers ?? {} });
   const j = (await r.json()) as { name?: string; error?: string };
   if (!r.ok || !j.name) throw new Error(j.error ?? "Upload failed");
   return j.name;

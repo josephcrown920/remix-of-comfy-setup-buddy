@@ -1,5 +1,5 @@
-import { AppWindow, useState, type ReactNode } from "react";
-import { AppWindow, Link, useNavigate } from "@tanstack/react-router";
+import { useState, type ReactNode } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { AppWindow, LayoutDashboard, Boxes, ListVideo, Images, Settings2, Menu, X, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "./logo";

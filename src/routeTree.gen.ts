@@ -13,11 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAppsRouteImport } from './routes/_authenticated/apps'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedGalleryRouteImport } from './routes/_authenticated/gallery'
 import { Route as AuthenticatedGenerateRouteImport } from './routes/_authenticated/generate'
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as ASlugRouteImport } from './routes/a.$slug'
 import { Route as ApiAppUploadRouteImport } from './routes/api/app-upload'
 import { Route as ApiMediaRouteImport } from './routes/api/media'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
@@ -40,6 +42,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppsRoute = AuthenticatedAppsRouteImport.update({
+  id: '/apps',
+  path: '/apps',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -66,6 +73,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ASlugRoute = ASlugRouteImport.update({
+  id: '/a/$slug',
+  path: '/a/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAppUploadRoute = ApiAppUploadRouteImport.update({
   id: '/api/app-upload',
   path: '/api/app-upload',
@@ -86,11 +98,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/apps': typeof AuthenticatedAppsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/gallery': typeof AuthenticatedGalleryRoute
   '/generate': typeof AuthenticatedGenerateRoute
   '/jobs': typeof AuthenticatedJobsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/a/$slug': typeof ASlugRoute
   '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
@@ -99,11 +113,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/apps': typeof AuthenticatedAppsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/gallery': typeof AuthenticatedGalleryRoute
   '/generate': typeof AuthenticatedGenerateRoute
   '/jobs': typeof AuthenticatedJobsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/a/$slug': typeof ASlugRoute
   '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
@@ -114,11 +130,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/apps': typeof AuthenticatedAppsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/gallery': typeof AuthenticatedGalleryRoute
   '/_authenticated/generate': typeof AuthenticatedGenerateRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/a/$slug': typeof ASlugRoute
   '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
@@ -129,11 +147,13 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/apps'
     | '/dashboard'
     | '/gallery'
     | '/generate'
     | '/jobs'
     | '/settings'
+    | '/a/$slug'
     | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
@@ -142,11 +162,13 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/apps'
     | '/dashboard'
     | '/gallery'
     | '/generate'
     | '/jobs'
     | '/settings'
+    | '/a/$slug'
     | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
@@ -156,11 +178,13 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/apps'
     | '/_authenticated/dashboard'
     | '/_authenticated/gallery'
     | '/_authenticated/generate'
     | '/_authenticated/jobs'
     | '/_authenticated/settings'
+    | '/a/$slug'
     | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
@@ -171,6 +195,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ASlugRoute: typeof ASlugRoute
   ApiAppUploadRoute: typeof ApiAppUploadRoute
   ApiMediaRoute: typeof ApiMediaRoute
   ApiUploadRoute: typeof ApiUploadRoute
@@ -205,6 +230,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/apps': {
+      id: '/_authenticated/apps'
+      path: '/apps'
+      fullPath: '/apps'
+      preLoaderRoute: typeof AuthenticatedAppsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -241,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/a/$slug': {
+      id: '/a/$slug'
+      path: '/a/$slug'
+      fullPath: '/a/$slug'
+      preLoaderRoute: typeof ASlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/app-upload': {
       id: '/api/app-upload'
       path: '/api/app-upload'
@@ -266,6 +305,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppsRoute: typeof AuthenticatedAppsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedGalleryRoute: typeof AuthenticatedGalleryRoute
   AuthenticatedGenerateRoute: typeof AuthenticatedGenerateRoute
@@ -274,6 +314,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppsRoute: AuthenticatedAppsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedGalleryRoute: AuthenticatedGalleryRoute,
   AuthenticatedGenerateRoute: AuthenticatedGenerateRoute,
@@ -289,6 +330,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ASlugRoute: ASlugRoute,
   ApiAppUploadRoute: ApiAppUploadRoute,
   ApiMediaRoute: ApiMediaRoute,
   ApiUploadRoute: ApiUploadRoute,

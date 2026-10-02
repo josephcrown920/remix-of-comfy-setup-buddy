@@ -20,7 +20,7 @@ const appInput = z.object({
 function shapeApp(a: any) {
   return {
     id: a.id as string, slug: a.slug as string, name: a.name as string, description: a.description as string,
-    workflowId: a.workflow_id as string, presetParams: a.preset_params as Record<string, unknown>,
+    workflowId: a.workflow_id as string, presetParams: a.preset_params as Record<string, string | number | boolean | null>,
     exposedKeys: a.exposed_keys as string[], isPublished: a.is_published as boolean, allowEmbed: a.allow_embed as boolean,
     createdAt: a.created_at as string,
   };
@@ -70,12 +70,12 @@ export const exportComfyGraph = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ workflowId: z.string().max(100), params: z.record(z.unknown()) }).parse(d))
   .handler(async ({ data, context }) => {
     if (data.workflowId === "custom-workflow") {
-      try { return JSON.parse(String(data.params["workflow_json"] ?? "{}")) as Record<string, unknown>; }
+      try { return JSON.stringify(JSON.parse(String(data.params["workflow_json"] ?? "{}")), null, 2); }
       catch { throw new Error("That workflow isn't valid JSON."); }
     }
     const { data: s } = await context.supabase.from("user_settings").select("model_assignments").eq("user_id", context.userId).maybeSingle();
     const ckpt = (s?.model_assignments as any)?.workflows?.[data.workflowId]?.checkpoint;
-    return buildComfyPrompt(data.workflowId, ckpt ? { ...data.params, checkpoint: ckpt } : data.params) as Record<string, unknown>;
+    return JSON.stringify(buildComfyPrompt(data.workflowId, ckpt ? { ...data.params, checkpoint: ckpt } : data.params), null, 2);
   });
 
 // ---------- public (visitors of a shared app) ----------
