@@ -14,3 +14,4 @@
 - Generated files are served via `/api/media` using short-lived HMAC-signed links (MEDIA_SIGNING_SECRET) because `<img>/<video>` can't send auth headers.
 - Workflow catalog and prompt builders in `src/lib/comfy/` are ported verbatim from the original app; edit there, not in pages.
 - Settings are per user (`user_settings`), not global, so each account connects its own GPU.
+- Public workflow apps (`/a/$slug`) run on the app owner's GPU via server functions using the admin client after checking `is_published`; visitors poll only their own run with an HMAC run token, and runs are rate-limited per app.
