@@ -64,6 +64,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          app_id: string | null
           batch_id: number | null
           batch_index: number | null
           comfy_prompt_id: string | null
@@ -84,6 +85,7 @@ export type Database = {
           workflow_name: string
         }
         Insert: {
+          app_id?: string | null
           batch_id?: number | null
           batch_index?: number | null
           comfy_prompt_id?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           workflow_name: string
         }
         Update: {
+          app_id?: string | null
           batch_id?: number | null
           batch_index?: number | null
           comfy_prompt_id?: string | null
@@ -124,6 +127,13 @@ export type Database = {
           workflow_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "jobs_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_apps"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jobs_batch_id_fkey"
             columns: ["batch_id"]
@@ -246,6 +256,51 @@ export type Database = {
           selected_gpu_id?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      workflow_apps: {
+        Row: {
+          allow_embed: boolean
+          created_at: string
+          description: string
+          exposed_keys: Json
+          id: string
+          is_published: boolean
+          name: string
+          owner_id: string
+          preset_params: Json
+          slug: string
+          updated_at: string
+          workflow_id: string
+        }
+        Insert: {
+          allow_embed?: boolean
+          created_at?: string
+          description?: string
+          exposed_keys?: Json
+          id?: string
+          is_published?: boolean
+          name: string
+          owner_id?: string
+          preset_params?: Json
+          slug: string
+          updated_at?: string
+          workflow_id: string
+        }
+        Update: {
+          allow_embed?: boolean
+          created_at?: string
+          description?: string
+          exposed_keys?: Json
+          id?: string
+          is_published?: boolean
+          name?: string
+          owner_id?: string
+          preset_params?: Json
+          slug?: string
+          updated_at?: string
+          workflow_id?: string
         }
         Relationships: []
       }
