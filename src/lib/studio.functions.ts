@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { WORKFLOWS } from "@/lib/comfy/workflows";
 import { buildComfyPrompt } from "@/lib/comfy/prompts";
 import { routePrompt } from "@/lib/router.server";
+import { ARK_PREFIX, createSeedanceTask, getSeedanceTask, isModelArkWorkflow, modelArkConfigured } from "@/lib/modelark.server";
 import { fetchComfy, inspectPrompt, redactUrl, signMedia, validateComfyTarget } from "@/lib/comfy.server";
 
 type SavedGpu = { id: number; label: string; url: string };
@@ -199,7 +200,7 @@ export const getComfyModels = createServerFn({ method: "GET" })
 
 // ---------- workflows ----------
 export const listWorkflows = createServerFn({ method: "GET" }).handler(async () =>
-  WORKFLOWS.filter((w) => !String(w.id).startsWith("modelark") && w.id !== "perform-anywhere-seedance").map((w) => ({
+  WORKFLOWS.filter((w) => w.id !== "modelark-seedream-image" && (!isModelArkWorkflow(w.id) || modelArkConfigured())).map((w) => ({
     id: w.id, name: w.name, description: w.description, category: w.category,
     estimatedTime: (w.estimatedTime as string) ?? null, params: w.params,
   })),
@@ -214,6 +215,19 @@ export const createJob = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const s = await loadSettings(supabase, userId);
+    if (isModelArkWorkflow(data.workflowId)) {
+      const wf = WORKFLOWS.find((w) => w.id === data.workflowId)!;
+      // Uploaded files live on the user's ComfyUI server; Seedance renders in the cloud.
+      const w = pickWorker(s, data.workerId);
+      const taskId = await createSeedanceTask(wf.id, data.params, w.url);
+      const { data: job, error } = await supabase.from("jobs").insert({
+        owner_id: userId, workflow_id: wf.id, workflow_name: wf.name, status: "running",
+        params: data.params as any, comfy_prompt_id: ARK_PREFIX + taskId, worker_id: null,
+        worker_label: "Seedance (ModelArk)", worker_url: w.url, progress: 0, started_at: new Date().toISOString(),
+      }).select().single();
+      if (error) throw new Error(error.message);
+      return shapeJob(job, []);
+    }
     let name: string;
     let prompt: Record<string, unknown>;
     if (data.workflowId === "custom-workflow") {
@@ -294,7 +308,14 @@ export const refreshJob = createServerFn({ method: "POST" })
     if (!job) throw new Error("Job not found");
     if (job.comfy_prompt_id && job.worker_url && (job.status === "running" || job.status === "pending")) {
       try {
-        const r = await inspectPrompt(job.worker_url, job.comfy_prompt_id);
+        const isArk = String(job.comfy_prompt_id).startsWith(ARK_PREFIX);
+        const r = isArk
+          ? await (async () => {
+              const id = String(job.comfy_prompt_id).slice(ARK_PREFIX.length);
+              const t = await getSeedanceTask(id);
+              return { state: t.state, error: t.error, outputs: t.state === "completed" ? [{ filename: id, subfolder: "modelark", outputType: "video" }] : [] };
+            })()
+          : await inspectPrompt(job.worker_url, job.comfy_prompt_id);
         if (r.state === "completed" || r.state === "failed") {
           if (r.outputs.length) {
             await supabase.from("outputs").delete().eq("job_id", job.id);
