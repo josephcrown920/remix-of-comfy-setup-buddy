@@ -2,6 +2,8 @@
 // Server-only: reads MODELARK_API_KEY and never exposes it to the browser.
 import { fetchComfy } from "@/lib/comfy.server";
 
+const env = (): Record<string, string | undefined> & any => process.env as any;
+
 const BASE = "https://ark.ap-southeast.bytepluses.com/api/v3";
 export const MODELARK_DEFAULT_MODEL = "dreamina-seedance-2-5-260628";
 export const MODELARK_WORKFLOWS = new Set(["perform-anywhere-seedance", "modelark-seedance-reference-video"]);
@@ -12,17 +14,17 @@ export function isModelArkWorkflow(id: string) {
   return MODELARK_WORKFLOWS.has(id);
 }
 export function modelArkConfigured() {
-  return Boolean(process.env.MODELARK_API_KEY?.trim());
+  return Boolean(env().MODELARK_API_KEY?.trim());
 }
 
 function key() {
-  const k = process.env.MODELARK_API_KEY?.trim();
+  const k = env().MODELARK_API_KEY?.trim();
   if (!k) throw new Error("Seedance isn't set up yet — the ModelArk key is missing.");
   return k;
 }
 
 async function ark(path: string, init: RequestInit = {}) {
-  return fetch(`${process.env.MODELARK_BASE_URL || BASE}${path}`, {
+  return fetch(`${env().MODELARK_BASE_URL || BASE}${path}`, {
     ...init,
     headers: { Authorization: `Bearer ${key()}`, ...(init.headers ?? {}) },
     signal: init.signal ?? AbortSignal.timeout(120_000),
@@ -61,7 +63,7 @@ function ext(ct: string, kind: Kind) {
 
 async function uploadFile(bytes: Uint8Array, name: string, contentType: string, model?: string) {
   const fd = new FormData();
-  fd.append("file", new Blob([bytes], { type: contentType }), name);
+  fd.append("file", new Blob([bytes as any], { type: contentType }), name);
   fd.append("purpose", "user_data");
   fd.append("expire_at", String(Math.floor(Date.now() / 1000) + 7 * 86400));
   if (model && contentType.startsWith("video/")) fd.append("preprocess_configs", JSON.stringify({ video: { model, fps: 2 } }));
@@ -72,8 +74,9 @@ async function uploadFile(bytes: Uint8Array, name: string, contentType: string, 
   return p.download_url as string;
 }
 
-export async function createSeedanceTask(workflowId: string, params: Record<string, unknown>, workerUrl: string) {
-  const model = String(params.model || process.env.MODELARK_SEEDANCE_MODEL || MODELARK_DEFAULT_MODEL).trim();
+export async function createSeedanceTask(workflowId: string, rawParams: Record<string, unknown>, workerUrl: string) {
+  const params: any = rawParams;
+  const model = String(params.model || env().MODELARK_SEEDANCE_MODEL || MODELARK_DEFAULT_MODEL).trim();
   if (!/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,119}$/.test(model)) throw new Error("The Seedance model ID is invalid.");
   const img = filename(params.source_image, "Opening image");
   const vid = filename(params.source_video, "Performance video");
