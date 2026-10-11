@@ -115,6 +115,9 @@ export const runPublicApp = createServerFn({ method: "POST" })
     const { count: active } = await admin.from("jobs").select("id", { count: "exact", head: true }).eq("app_id", app.id).in("status", ["pending", "running"]);
     if ((recent ?? 0) >= 6 || (active ?? 0) >= 4) throw new Error("This app is busy right now — try again in a minute.");
 
+    if (String(app.workflow_id).startsWith("modelark") || app.workflow_id === "perform-anywhere-seedance") {
+      throw new Error("Seedance workflows can't run as public apps yet.");
+    }
     const exposed = new Set(app.exposed_keys as string[]);
     const params: Record<string, unknown> = { ...(app.preset_params as Record<string, unknown>) };
     for (const [k, v] of Object.entries(data.values)) if (exposed.has(k)) params[k] = typeof v === "string" ? v.slice(0, 4000) : v;
