@@ -3,3 +3,5 @@
 - [ ] Phase 2: Batch Studio, Saved workflows UI, Models assignments, Guide, Launch GPU
 - [ ] Phase 3: Assistant (AI), Perform Anywhere / ModelArk, GPU Hub, RunPod/Vast, Admin Studio (needs provider keys)
 - [ ] Import existing data + users (needs Replit database CSV export + Clerk user export)
+- [ ] Package the three Perform Anywhere workflows as portable download files
+- [ ] Add researched ComfyUI workflows and make ModelArk-backed workflows use the saved ModelArk key where supported
