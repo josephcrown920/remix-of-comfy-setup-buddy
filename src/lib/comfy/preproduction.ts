@@ -11,6 +11,12 @@ export const PREPRODUCTION_WORKFLOWS: WorkflowDef[] = [{
     { key: "steps", label: "Sampling steps", type: "slider", defaultValue: "12", min: 4, max: 20 },
     { key: "seed", label: "Seed", type: "number", defaultValue: 42, min: 0, max: 2147483647 },
   ],
+}, {
+  id: "depth-map", name: "Depth Map — Relative Depth", category: "preproduction", icon: "Layers",
+  description: "Extract foreground and background depth from a scene image. Relative depth, not real-world distances. Requires a ComfyUI GPU with ComfyUI-DepthAnythingV2; the model downloads on first use.",
+  params: [
+    { key: "source_image", label: "Scene image", type: "file", required: true, accept: "image/*" },
+  ],
 }];
 
 function bounded(value: unknown, fallback: number, min: number, max: number) {
@@ -29,5 +35,16 @@ export function buildPrevisPrompt(params: Record<string, unknown>) {
     "5": { class_type: "KSampler", inputs: { model: ["1", 0], positive: ["2", 0], negative: ["3", 0], latent_image: ["4", 0], seed: bounded(params.seed, 42, 0, 2147483647), steps: bounded(params.steps, 12, 4, 20), cfg: 7, sampler_name: "euler", scheduler: "normal", denoise: 1 } },
     "6": { class_type: "VAEDecode", inputs: { samples: ["5", 0], vae: ["1", 2] } },
     "7": { class_type: "SaveImage", inputs: { images: ["6", 0], filename_prefix: "aurora-previs" } },
+  };
+}
+
+// Adapted from Comfy-Org/workflow_templates utility-depthAnything-v2-relative-video.
+// Node definitions: github.com/kijai/ComfyUI-DepthAnythingV2/blob/main/nodes.py
+export function buildDepthMapPrompt(params: Record<string, unknown>) {
+  return {
+    "1": { class_type: "LoadImage", inputs: { image: String(params.source_image ?? "") } },
+    "2": { class_type: "DownloadAndLoadDepthAnythingV2Model", inputs: { model: "depth_anything_v2_vitl_fp32.safetensors" } },
+    "3": { class_type: "DepthAnything_V2", inputs: { da_model: ["2", 0], images: ["1", 0] } },
+    "4": { class_type: "SaveImage", inputs: { images: ["3", 0], filename_prefix: "aurora-depth" } },
   };
 }
