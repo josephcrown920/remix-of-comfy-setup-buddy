@@ -64,7 +64,7 @@ function parsePromptJson(raw: unknown) {
 }
 
 /** Shared by the studio UI, the developer page and the public API so every path routes and bills the same way. */
-export async function submitJob(supabase: any, userId: string, input: { workflowId: string; params: Record<string, unknown>; workerId?: number; appId?: string | null }) {
+export async function submitJob(supabase: any, userId: string, input: { workflowId: string; params: Record<string, unknown>; workerId?: number | undefined; appId?: string | null | undefined }) {
   const s = await loadSettings(supabase, userId);
   if (isModelArkWorkflow(input.workflowId)) {
     const wf = WORKFLOWS.find((w) => w.id === input.workflowId)!;
