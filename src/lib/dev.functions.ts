@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { allWorkers, probeWorker } from "@/lib/router.server";
 import { loadSettings } from "@/lib/jobs.server";
 
-/** Converts the ComfyUI editor format (nodes/links) is not supported here — only API format. */
+/** Accepts only ComfyUI API-format prompts (not the editor nodes/links format). */
 function parseApiPrompt(raw: string) {
   let j: any;
   try { j = JSON.parse(raw); } catch { throw new Error("That isn't valid JSON."); }

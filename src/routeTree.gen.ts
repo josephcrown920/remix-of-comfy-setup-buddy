@@ -24,6 +24,8 @@ import { Route as ASlugRouteImport } from './routes/a.$slug'
 import { Route as ApiAppUploadRouteImport } from './routes/api/app-upload'
 import { Route as ApiMediaRouteImport } from './routes/api/media'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
+import { Route as ApiPublicV1RunRouteImport } from './routes/api/public/v1/run'
+import { Route as ApiPublicV1JobsIdRouteImport } from './routes/api/public/v1/jobs.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -99,6 +101,16 @@ const ApiUploadRoute = ApiUploadRouteImport.update({
   path: '/api/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1RunRoute = ApiPublicV1RunRouteImport.update({
+  id: '/api/public/v1/run',
+  path: '/api/public/v1/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1JobsIdRoute = ApiPublicV1JobsIdRouteImport.update({
+  id: '/api/public/v1/jobs/$id',
+  path: '/api/public/v1/jobs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -115,6 +127,8 @@ export interface FileRoutesByFullPath {
   '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
+  '/api/public/v1/run': typeof ApiPublicV1RunRoute
+  '/api/public/v1/jobs/$id': typeof ApiPublicV1JobsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -131,6 +145,8 @@ export interface FileRoutesByTo {
   '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
+  '/api/public/v1/run': typeof ApiPublicV1RunRoute
+  '/api/public/v1/jobs/$id': typeof ApiPublicV1JobsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -149,6 +165,8 @@ export interface FileRoutesById {
   '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
+  '/api/public/v1/run': typeof ApiPublicV1RunRoute
+  '/api/public/v1/jobs/$id': typeof ApiPublicV1JobsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -167,6 +185,8 @@ export interface FileRouteTypes {
     | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
+    | '/api/public/v1/run'
+    | '/api/public/v1/jobs/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -183,6 +203,8 @@ export interface FileRouteTypes {
     | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
+    | '/api/public/v1/run'
+    | '/api/public/v1/jobs/$id'
   id:
     | '__root__'
     | '/'
@@ -200,6 +222,8 @@ export interface FileRouteTypes {
     | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
+    | '/api/public/v1/run'
+    | '/api/public/v1/jobs/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -211,6 +235,8 @@ export interface RootRouteChildren {
   ApiAppUploadRoute: typeof ApiAppUploadRoute
   ApiMediaRoute: typeof ApiMediaRoute
   ApiUploadRoute: typeof ApiUploadRoute
+  ApiPublicV1RunRoute: typeof ApiPublicV1RunRoute
+  ApiPublicV1JobsIdRoute: typeof ApiPublicV1JobsIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -320,6 +346,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/run': {
+      id: '/api/public/v1/run'
+      path: '/api/public/v1/run'
+      fullPath: '/api/public/v1/run'
+      preLoaderRoute: typeof ApiPublicV1RunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/jobs/$id': {
+      id: '/api/public/v1/jobs/$id'
+      path: '/api/public/v1/jobs/$id'
+      fullPath: '/api/public/v1/jobs/$id'
+      preLoaderRoute: typeof ApiPublicV1JobsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -355,6 +395,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAppUploadRoute: ApiAppUploadRoute,
   ApiMediaRoute: ApiMediaRoute,
   ApiUploadRoute: ApiUploadRoute,
+  ApiPublicV1RunRoute: ApiPublicV1RunRoute,
+  ApiPublicV1JobsIdRoute: ApiPublicV1JobsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
