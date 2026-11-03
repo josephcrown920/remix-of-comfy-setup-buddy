@@ -53,7 +53,7 @@ export const listApiKeys = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await (context.supabase as any).from("api_keys").select("id, name, prefix, created_at, last_used_at").order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((k: any) => ({ id: Number(k.id), name: k.name, prefix: k.prefix, createdAt: k.created_at, lastUsedAt: k.last_used_at }));
+    return ((data ?? []) as any[]).map((k) => ({ id: Number(k.id), name: String(k.name), prefix: String(k.prefix), createdAt: String(k.created_at), lastUsedAt: (k.last_used_at as string | null) ?? null }));
   });
 
 export const createApiKey = createServerFn({ method: "POST" })
