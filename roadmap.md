@@ -6,4 +6,6 @@
 - [ ] Package the three Perform Anywhere workflows as portable download files
 - [ ] Add researched ComfyUI workflows and make ModelArk-backed workflows use the saved ModelArk key where supported
 - [x] Comfy account key (paid nodes bill Comfy credits), Comfy Dev page (tester, live editor), personal API
-- [ ] Connect Lovable-credit image generation (awaiting user choice)
+- [ ] Connect Lovable-credit image generation (requested; separate from GPU templates)
+- [ ] Add previs and depth-map workflows; verify exports and catalog
+- [ ] Explain connections, Genjutsu, and current agent limitations
