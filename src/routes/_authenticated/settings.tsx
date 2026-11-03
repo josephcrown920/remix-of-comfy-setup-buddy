@@ -36,6 +36,7 @@ function Settings() {
   const [busy, setBusy] = useState<string | null>(null);
   const [gpuLabel, setGpuLabel] = useState("");
   const [gpuUrl, setGpuUrl] = useState("");
+  const [orgKey, setOrgKey] = useState("");
   useEffect(() => { if (settings.data) setUrl(settings.data.comfyUrl); }, [settings.data]);
 
   const run = async (key: string, fn: () => Promise<unknown>, ok?: string) => {
@@ -88,7 +89,7 @@ function Settings() {
             <Select value={s.routingMode} onValueChange={(v) => run("route", () => save({ data: { routingMode: v as "auto" | "manual" } }))}>
               <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="auto">Automatic — primary server</SelectItem>
+                <SelectItem value="auto">Comfy router — least busy healthy GPU</SelectItem>
                 <SelectItem value="manual">Always use a chosen GPU</SelectItem>
               </SelectContent>
             </Select>
@@ -102,6 +103,17 @@ function Settings() {
               </Select>
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="panel mt-6 p-6 md:p-8">
+        <h2 className="text-lg">Comfy account</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Paste your API key from platform.comfy.org. Paid Comfy nodes in your workflows (partner models) will then use your Comfy credits. Your GPU still runs everything else. The key stays private and is never shown again.</p>
+        <p className="mt-2 text-sm">{s.hasComfyOrgKey ? "✓ Connected" : "Not connected"}</p>
+        <div className="mt-3 flex flex-col gap-3 md:flex-row">
+          <Input type="password" autoComplete="off" placeholder="comfyui-…" value={orgKey} onChange={(e) => setOrgKey(e.target.value)} className="font-mono text-sm" />
+          <Button disabled={!orgKey.trim() || busy === "org"} onClick={() => run("org", async () => { await save({ data: { comfyOrgKey: orgKey.trim() } }); setOrgKey(""); }, "Comfy account connected")}>Save key</Button>
+          {s.hasComfyOrgKey && <Button variant="outline" disabled={busy === "org"} onClick={() => run("org", () => save({ data: { comfyOrgKey: "" } }), "Disconnected")}>Disconnect</Button>}
         </div>
       </section>
 

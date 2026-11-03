@@ -5,3 +5,5 @@
 - [ ] Import existing data + users (needs Replit database CSV export + Clerk user export)
 - [ ] Package the three Perform Anywhere workflows as portable download files
 - [ ] Add researched ComfyUI workflows and make ModelArk-backed workflows use the saved ModelArk key where supported
+- [x] Comfy account key (paid nodes bill Comfy credits), Comfy Dev page (tester, live editor), personal API
+- [ ] Connect Lovable-credit image generation (awaiting user choice)

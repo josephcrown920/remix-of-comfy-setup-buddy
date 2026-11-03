@@ -16,6 +16,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAppsRouteImport } from './routes/_authenticated/apps'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedGalleryRouteImport } from './routes/_authenticated/gallery'
 import { Route as AuthenticatedGenerateRouteImport } from './routes/_authenticated/generate'
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
@@ -24,6 +25,8 @@ import { Route as ASlugRouteImport } from './routes/a.$slug'
 import { Route as ApiAppUploadRouteImport } from './routes/api/app-upload'
 import { Route as ApiMediaRouteImport } from './routes/api/media'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
+import { Route as ApiPublicV1RunRouteImport } from './routes/api/public/v1/run'
+import { Route as ApiPublicV1JobsIdRouteImport } from './routes/api/public/v1/jobs.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -57,6 +60,11 @@ const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
+  id: '/dev',
+  path: '/dev',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGalleryRoute = AuthenticatedGalleryRouteImport.update({
@@ -99,6 +107,16 @@ const ApiUploadRoute = ApiUploadRouteImport.update({
   path: '/api/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1RunRoute = ApiPublicV1RunRouteImport.update({
+  id: '/api/public/v1/run',
+  path: '/api/public/v1/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1JobsIdRoute = ApiPublicV1JobsIdRouteImport.update({
+  id: '/api/public/v1/jobs/$id',
+  path: '/api/public/v1/jobs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -107,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/apps': typeof AuthenticatedAppsRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dev': typeof AuthenticatedDevRoute
   '/gallery': typeof AuthenticatedGalleryRoute
   '/generate': typeof AuthenticatedGenerateRoute
   '/jobs': typeof AuthenticatedJobsRoute
@@ -115,6 +134,8 @@ export interface FileRoutesByFullPath {
   '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
+  '/api/public/v1/run': typeof ApiPublicV1RunRoute
+  '/api/public/v1/jobs/$id': typeof ApiPublicV1JobsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,6 +144,7 @@ export interface FileRoutesByTo {
   '/apps': typeof AuthenticatedAppsRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dev': typeof AuthenticatedDevRoute
   '/gallery': typeof AuthenticatedGalleryRoute
   '/generate': typeof AuthenticatedGenerateRoute
   '/jobs': typeof AuthenticatedJobsRoute
@@ -131,6 +153,8 @@ export interface FileRoutesByTo {
   '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
+  '/api/public/v1/run': typeof ApiPublicV1RunRoute
+  '/api/public/v1/jobs/$id': typeof ApiPublicV1JobsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,6 +165,7 @@ export interface FileRoutesById {
   '/_authenticated/apps': typeof AuthenticatedAppsRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/gallery': typeof AuthenticatedGalleryRoute
   '/_authenticated/generate': typeof AuthenticatedGenerateRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
@@ -149,6 +174,8 @@ export interface FileRoutesById {
   '/api/app-upload': typeof ApiAppUploadRoute
   '/api/media': typeof ApiMediaRoute
   '/api/upload': typeof ApiUploadRoute
+  '/api/public/v1/run': typeof ApiPublicV1RunRoute
+  '/api/public/v1/jobs/$id': typeof ApiPublicV1JobsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -159,6 +186,7 @@ export interface FileRouteTypes {
     | '/apps'
     | '/assistant'
     | '/dashboard'
+    | '/dev'
     | '/gallery'
     | '/generate'
     | '/jobs'
@@ -167,6 +195,8 @@ export interface FileRouteTypes {
     | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
+    | '/api/public/v1/run'
+    | '/api/public/v1/jobs/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -175,6 +205,7 @@ export interface FileRouteTypes {
     | '/apps'
     | '/assistant'
     | '/dashboard'
+    | '/dev'
     | '/gallery'
     | '/generate'
     | '/jobs'
@@ -183,6 +214,8 @@ export interface FileRouteTypes {
     | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
+    | '/api/public/v1/run'
+    | '/api/public/v1/jobs/$id'
   id:
     | '__root__'
     | '/'
@@ -192,6 +225,7 @@ export interface FileRouteTypes {
     | '/_authenticated/apps'
     | '/_authenticated/assistant'
     | '/_authenticated/dashboard'
+    | '/_authenticated/dev'
     | '/_authenticated/gallery'
     | '/_authenticated/generate'
     | '/_authenticated/jobs'
@@ -200,6 +234,8 @@ export interface FileRouteTypes {
     | '/api/app-upload'
     | '/api/media'
     | '/api/upload'
+    | '/api/public/v1/run'
+    | '/api/public/v1/jobs/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -211,6 +247,8 @@ export interface RootRouteChildren {
   ApiAppUploadRoute: typeof ApiAppUploadRoute
   ApiMediaRoute: typeof ApiMediaRoute
   ApiUploadRoute: typeof ApiUploadRoute
+  ApiPublicV1RunRoute: typeof ApiPublicV1RunRoute
+  ApiPublicV1JobsIdRoute: typeof ApiPublicV1JobsIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -262,6 +300,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dev': {
+      id: '/_authenticated/dev'
+      path: '/dev'
+      fullPath: '/dev'
+      preLoaderRoute: typeof AuthenticatedDevRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/gallery': {
@@ -320,6 +365,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/run': {
+      id: '/api/public/v1/run'
+      path: '/api/public/v1/run'
+      fullPath: '/api/public/v1/run'
+      preLoaderRoute: typeof ApiPublicV1RunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/jobs/$id': {
+      id: '/api/public/v1/jobs/$id'
+      path: '/api/public/v1/jobs/$id'
+      fullPath: '/api/public/v1/jobs/$id'
+      preLoaderRoute: typeof ApiPublicV1JobsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -327,6 +386,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppsRoute: typeof AuthenticatedAppsRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedGalleryRoute: typeof AuthenticatedGalleryRoute
   AuthenticatedGenerateRoute: typeof AuthenticatedGenerateRoute
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
@@ -337,6 +397,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppsRoute: AuthenticatedAppsRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedGalleryRoute: AuthenticatedGalleryRoute,
   AuthenticatedGenerateRoute: AuthenticatedGenerateRoute,
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,
@@ -355,6 +416,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAppUploadRoute: ApiAppUploadRoute,
   ApiMediaRoute: ApiMediaRoute,
   ApiUploadRoute: ApiUploadRoute,
+  ApiPublicV1RunRoute: ApiPublicV1RunRoute,
+  ApiPublicV1JobsIdRoute: ApiPublicV1JobsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

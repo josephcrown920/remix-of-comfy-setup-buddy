@@ -2,54 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { WORKFLOWS } from "@/lib/comfy/workflows";
-import { buildComfyPrompt } from "@/lib/comfy/prompts";
-import { routePrompt } from "@/lib/router.server";
-import { ARK_PREFIX, createSeedanceTask, getSeedanceTask, isModelArkWorkflow, modelArkConfigured } from "@/lib/modelark.server";
-import { fetchComfy, inspectPrompt, redactUrl, signMedia, validateComfyTarget } from "@/lib/comfy.server";
+import { isModelArkWorkflow, modelArkConfigured } from "@/lib/modelark.server";
+import { fetchComfy, redactUrl, signMedia, validateComfyTarget } from "@/lib/comfy.server";
+import { loadSettings, pickWorker, refreshJobRow, shapeJob, submitJob } from "@/lib/jobs.server";
 
 type SavedGpu = { id: number; label: string; url: string };
-
-async function loadSettings(supabase: any, userId: string) {
-  const { data } = await supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle();
-  return {
-    comfyUrl: (data?.comfy_url as string) ?? "",
-    routingMode: (data?.routing_mode as string) ?? "auto",
-    selectedGpuId: (data?.selected_gpu_id as number | null) ?? null,
-    savedGpus: ((data?.saved_gpus as SavedGpu[]) ?? []) as SavedGpu[],
-    modelAssignments: (data?.model_assignments as any) ?? {},
-  };
-}
-
-/** Pick the ComfyUI server for a job: explicit worker, selected worker, or primary URL. */
-function pickWorker(s: Awaited<ReturnType<typeof loadSettings>>, workerId?: number) {
-  const id = workerId ?? (s.routingMode === "manual" ? s.selectedGpuId ?? undefined : undefined);
-  const gpu = id != null ? s.savedGpus.find((g) => g.id === id) : undefined;
-  if (gpu) return { id: gpu.id, label: gpu.label, url: gpu.url };
-  if (s.comfyUrl) return { id: null, label: "Primary", url: s.comfyUrl };
-  if (s.savedGpus[0]) return { ...s.savedGpus[0] };
-  throw new Error("No ComfyUI server configured. Add one in Settings.");
-}
-
-function shapeJob(job: any, outputs: any[]) {
-  return {
-    id: Number(job.id),
-    workflowId: job.workflow_id as string,
-    workflowName: job.workflow_name as string,
-    status: job.status as string,
-    params: job.params as Record<string, string | number | boolean | null>,
-    progress: (job.progress as number) ?? 0,
-    errorMessage: (job.error_message as string) ?? null,
-    workerLabel: (job.worker_label as string) ?? null,
-    createdAt: job.created_at as string,
-    completedAt: (job.completed_at as string) ?? null,
-    outputs: outputs.map((o) => ({
-      id: Number(o.id),
-      filename: o.filename as string,
-      outputType: o.output_type as string,
-      url: signMedia(Number(o.id)),
-    })),
-  };
-}
 export type StudioJob = ReturnType<typeof shapeJob>;
 
 // ---------- settings ----------
@@ -60,6 +17,7 @@ export const getSettings = createServerFn({ method: "GET" })
     return {
       comfyUrl: redactUrl(s.comfyUrl),
       hasComfyUrl: !!s.comfyUrl,
+      hasComfyOrgKey: !!s.comfyOrgKey,
       routingMode: s.routingMode,
       selectedGpuId: s.selectedGpuId,
       savedGpus: s.savedGpus.map((g) => ({ ...g, url: redactUrl(g.url) })),
@@ -73,6 +31,7 @@ export const updateSettings = createServerFn({ method: "POST" })
       comfyUrl: z.string().max(500).optional(),
       routingMode: z.enum(["auto", "manual"]).optional(),
       selectedGpuId: z.number().int().nullable().optional(),
+      comfyOrgKey: z.string().trim().max(500).optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -92,6 +51,7 @@ export const updateSettings = createServerFn({ method: "POST" })
       routing_mode: data.routingMode ?? cur.routingMode,
       selected_gpu_id: data.selectedGpuId === undefined ? cur.selectedGpuId : data.selectedGpuId,
       saved_gpus: cur.savedGpus,
+      ...({ comfy_org_api_key: data.comfyOrgKey === undefined ? cur.comfyOrgKey : data.comfyOrgKey || null } as any),
       updated_at: new Date().toISOString(),
     });
     if (error) throw new Error(error.message);
@@ -212,64 +172,7 @@ export const createJob = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z.object({ workflowId: z.string().max(100), params: z.record(z.unknown()), workerId: z.number().int().optional() }).parse(d),
   )
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const s = await loadSettings(supabase, userId);
-    if (isModelArkWorkflow(data.workflowId)) {
-      const wf = WORKFLOWS.find((w) => w.id === data.workflowId)!;
-      // Uploaded files live on the user's ComfyUI server; Seedance renders in the cloud.
-      const w = pickWorker(s, data.workerId);
-      const taskId = await createSeedanceTask(wf.id, data.params, w.url);
-      const { data: job, error } = await supabase.from("jobs").insert({
-        owner_id: userId, workflow_id: wf.id, workflow_name: wf.name, status: "running",
-        params: data.params as any, comfy_prompt_id: ARK_PREFIX + taskId, worker_id: null,
-        worker_label: "Seedance (ModelArk)", worker_url: w.url, progress: 0, started_at: new Date().toISOString(),
-      }).select().single();
-      if (error) throw new Error(error.message);
-      return shapeJob(job, []);
-    }
-    let name: string;
-    let prompt: Record<string, unknown>;
-    if (data.workflowId === "custom-workflow") {
-      const raw = data.params["workflow_json"];
-      if (typeof raw !== "string") throw new Error("Paste a ComfyUI API-format workflow.");
-      let parsed: unknown;
-      try { parsed = JSON.parse(raw); } catch { throw new Error("That workflow isn't valid JSON."); }
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Workflow must be an API-format prompt object.");
-      prompt = parsed as Record<string, unknown>;
-      name = "Custom Workflow";
-    } else {
-      const wf = WORKFLOWS.find((w) => w.id === data.workflowId);
-      if (!wf) throw new Error("Unknown workflow");
-      name = wf.name;
-      const ckpt = s.modelAssignments?.workflows?.[wf.id]?.checkpoint;
-      prompt = buildComfyPrompt(wf.id, ckpt ? { ...data.params, checkpoint: ckpt } : data.params);
-    }
-    const worker = (await routePrompt(s, prompt, data.workerId)).worker;
-    let promptId: string | null = null;
-    let status = "pending";
-    try {
-      const r = await fetchComfy(worker.url, "/prompt", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt }),
-      });
-      if (!r.ok) {
-        const t = await r.text().catch(() => "");
-        throw new Error(`ComfyUI rejected the workflow (HTTP ${r.status}): ${t.slice(0, 400)}`);
-      }
-      promptId = ((await r.json()) as any).prompt_id ?? null;
-      status = "running";
-    } catch (e) {
-      if (e instanceof Error && e.message.startsWith("ComfyUI rejected")) throw e;
-    }
-    const { data: job, error } = await supabase.from("jobs").insert({
-      owner_id: userId, workflow_id: data.workflowId, workflow_name: name, status,
-      params: data.params as any, comfy_prompt_id: promptId, worker_id: worker.id,
-      worker_label: worker.label, worker_url: worker.url, progress: 0,
-      started_at: promptId ? new Date().toISOString() : null,
-    }).select().single();
-    if (error) throw new Error(error.message);
-    return shapeJob(job, []);
-  });
+  .handler(async ({ data, context }) => submitJob(context.supabase, context.userId, data));
 
 export const listJobs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -302,42 +205,7 @@ export const getJobStats = createServerFn({ method: "GET" })
 export const refreshJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.number().int() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { data: job } = await supabase.from("jobs").select("*").eq("id", data.id).maybeSingle();
-    if (!job) throw new Error("Job not found");
-    if (job.comfy_prompt_id && job.worker_url && (job.status === "running" || job.status === "pending")) {
-      try {
-        const isArk = String(job.comfy_prompt_id).startsWith(ARK_PREFIX);
-        const r = isArk
-          ? await (async () => {
-              const id = String(job.comfy_prompt_id).slice(ARK_PREFIX.length);
-              const t = await getSeedanceTask(id);
-              return { state: t.state, error: t.error, outputs: t.state === "completed" ? [{ filename: id, subfolder: "modelark", outputType: "video" }] : [] };
-            })()
-          : await inspectPrompt(job.worker_url, job.comfy_prompt_id);
-        if (r.state === "completed" || r.state === "failed") {
-          if (r.outputs.length) {
-            await supabase.from("outputs").delete().eq("job_id", job.id);
-            await supabase.from("outputs").insert(
-              r.outputs.map((o) => ({ owner_id: userId, job_id: job.id, filename: o.filename, subfolder: o.subfolder, output_type: o.outputType })),
-            );
-          }
-          await supabase.from("jobs").update({
-            status: r.state, progress: r.state === "completed" ? 100 : job.progress,
-            error_message: r.error, completed_at: new Date().toISOString(),
-          }).eq("id", job.id);
-        } else if (r.state === "running" && job.status !== "running") {
-          await supabase.from("jobs").update({ status: "running" }).eq("id", job.id);
-        }
-      } catch {
-        // ComfyUI temporarily unreachable — keep current state.
-      }
-    }
-    const { data: fresh } = await supabase.from("jobs").select("*").eq("id", data.id).single();
-    const { data: outs } = await supabase.from("outputs").select("*").eq("job_id", data.id);
-    return shapeJob(fresh, outs ?? []);
-  });
+  .handler(async ({ data, context }) => refreshJobRow(context.supabase, context.userId, data.id));
 
 export const cancelJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
