@@ -16,6 +16,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAppsRouteImport } from './routes/_authenticated/apps'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedGalleryRouteImport } from './routes/_authenticated/gallery'
 import { Route as AuthenticatedGenerateRouteImport } from './routes/_authenticated/generate'
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
@@ -59,6 +60,11 @@ const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
+  id: '/dev',
+  path: '/dev',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGalleryRoute = AuthenticatedGalleryRouteImport.update({
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/apps': typeof AuthenticatedAppsRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dev': typeof AuthenticatedDevRoute
   '/gallery': typeof AuthenticatedGalleryRoute
   '/generate': typeof AuthenticatedGenerateRoute
   '/jobs': typeof AuthenticatedJobsRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/apps': typeof AuthenticatedAppsRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dev': typeof AuthenticatedDevRoute
   '/gallery': typeof AuthenticatedGalleryRoute
   '/generate': typeof AuthenticatedGenerateRoute
   '/jobs': typeof AuthenticatedJobsRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/_authenticated/apps': typeof AuthenticatedAppsRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/gallery': typeof AuthenticatedGalleryRoute
   '/_authenticated/generate': typeof AuthenticatedGenerateRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/apps'
     | '/assistant'
     | '/dashboard'
+    | '/dev'
     | '/gallery'
     | '/generate'
     | '/jobs'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/apps'
     | '/assistant'
     | '/dashboard'
+    | '/dev'
     | '/gallery'
     | '/generate'
     | '/jobs'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/_authenticated/apps'
     | '/_authenticated/assistant'
     | '/_authenticated/dashboard'
+    | '/_authenticated/dev'
     | '/_authenticated/gallery'
     | '/_authenticated/generate'
     | '/_authenticated/jobs'
@@ -288,6 +300,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dev': {
+      id: '/_authenticated/dev'
+      path: '/dev'
+      fullPath: '/dev'
+      preLoaderRoute: typeof AuthenticatedDevRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/gallery': {
@@ -367,6 +386,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppsRoute: typeof AuthenticatedAppsRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedGalleryRoute: typeof AuthenticatedGalleryRoute
   AuthenticatedGenerateRoute: typeof AuthenticatedGenerateRoute
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
@@ -377,6 +397,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppsRoute: AuthenticatedAppsRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedGalleryRoute: AuthenticatedGalleryRoute,
   AuthenticatedGenerateRoute: AuthenticatedGenerateRoute,
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,

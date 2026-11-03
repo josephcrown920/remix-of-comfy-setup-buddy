@@ -17,3 +17,7 @@
 - Public workflow apps (`/a/$slug`) run on the app owner's GPU via server functions using the admin client after checking `is_published`; visitors poll only their own run with an HMAC run token, and runs are rate-limited per app.
 - GPU selection goes through `routePrompt` in `src/lib/router.server.ts` (probe health + required nodes, least-busy wins) so every render path routes the same way.
 - AI features (assistant, video agent) call Lovable AI via `src/lib/ai-gateway.server.ts`, server-side only, so prompts and keys never reach the browser.
+
+- Job submission/refresh lives in `src/lib/jobs.server.ts` (`submitJob`, `refreshJobRow`) and is shared by the studio UI, Comfy Dev and the public API so every path routes and bills the same way.
+- The public API (`/api/public/v1/*`) authenticates with hashed personal keys (`api_keys`, sha256) via `src/lib/api-auth.server.ts`; raw keys are shown once and never stored.
+- The user's Comfy account key is sent only server-side as `extra_data.api_key_comfy_org`; public app runs do not use it, so strangers never spend the owner's Comfy credits.
