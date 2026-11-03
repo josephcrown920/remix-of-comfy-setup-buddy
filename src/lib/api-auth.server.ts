@@ -12,9 +12,9 @@ export async function authApiKey(request: Request) {
   if (recent.length >= 30) return { error: Response.json({ error: "Too many requests" }, { status: 429, headers: { "Retry-After": "60" } }) } as const;
   recent.push(now); hits.set(hash, recent);
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin.from("api_keys").select("id, owner_id").eq("key_hash", hash).maybeSingle();
+  const { data } = await (supabaseAdmin as any).from("api_keys").select("id, owner_id").eq("key_hash", hash).maybeSingle();
   if (!data) return { error: Response.json({ error: "Missing or invalid API key" }, { status: 401 }) } as const;
-  await supabaseAdmin.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", data.id);
+  await (supabaseAdmin as any).from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", data.id);
   return { userId: data.owner_id as string, supabase: supabaseAdmin } as const;
 }
 

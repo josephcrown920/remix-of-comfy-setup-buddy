@@ -51,7 +51,7 @@ export const updateSettings = createServerFn({ method: "POST" })
       routing_mode: data.routingMode ?? cur.routingMode,
       selected_gpu_id: data.selectedGpuId === undefined ? cur.selectedGpuId : data.selectedGpuId,
       saved_gpus: cur.savedGpus,
-      comfy_org_api_key: data.comfyOrgKey === undefined ? cur.comfyOrgKey : data.comfyOrgKey || null,
+      ...({ comfy_org_api_key: data.comfyOrgKey === undefined ? cur.comfyOrgKey : data.comfyOrgKey || null } as any),
       updated_at: new Date().toISOString(),
     });
     if (error) throw new Error(error.message);

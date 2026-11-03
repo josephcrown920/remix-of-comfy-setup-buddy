@@ -51,9 +51,9 @@ export const hashApiKey = (k: string) => createHash("sha256").update(k).digest("
 export const listApiKeys = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase.from("api_keys").select("id, name, prefix, created_at, last_used_at").order("created_at", { ascending: false });
+    const { data, error } = await (context.supabase as any).from("api_keys").select("id, name, prefix, created_at, last_used_at").order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((k) => ({ id: Number(k.id), name: k.name, prefix: k.prefix, createdAt: k.created_at, lastUsedAt: k.last_used_at }));
+    return (data ?? []).map((k: any) => ({ id: Number(k.id), name: k.name, prefix: k.prefix, createdAt: k.created_at, lastUsedAt: k.last_used_at }));
   });
 
 export const createApiKey = createServerFn({ method: "POST" })
@@ -61,7 +61,7 @@ export const createApiKey = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ name: z.string().trim().min(1).max(60) }).parse(d))
   .handler(async ({ data, context }) => {
     const key = "aur_" + randomBytes(24).toString("hex");
-    const { error } = await context.supabase.from("api_keys").insert({ owner_id: context.userId, name: data.name, key_hash: hashApiKey(key), prefix: key.slice(0, 10) });
+    const { error } = await (context.supabase as any).from("api_keys").insert({ owner_id: context.userId, name: data.name, key_hash: hashApiKey(key), prefix: key.slice(0, 10) });
     if (error) throw new Error(error.message);
     return { key };
   });
@@ -70,7 +70,7 @@ export const deleteApiKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.number().int() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("api_keys").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any).from("api_keys").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
