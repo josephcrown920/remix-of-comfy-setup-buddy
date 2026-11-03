@@ -13,6 +13,7 @@
 - All ComfyUI calls go through server code (`src/lib/comfy.server.ts`) — the user's GPU URL may embed credentials and must never reach the browser.
 - Generated files are served via `/api/media` using short-lived HMAC-signed links (MEDIA_SIGNING_SECRET) because `<img>/<video>` can't send auth headers.
 - Workflow catalog and prompt builders in `src/lib/comfy/` are ported verbatim from the original app; edit there, not in pages.
+- Preproduction templates and their pure graph builders live in `src/lib/comfy/preproduction.ts`, consumed by the shared catalog and dispatcher so studio, export, and API paths stay consistent.
 - Settings are per user (`user_settings`), not global, so each account connects its own GPU.
 - Public workflow apps (`/a/$slug`) run on the app owner's GPU via server functions using the admin client after checking `is_published`; visitors poll only their own run with an HMAC run token, and runs are rate-limited per app.
 - GPU selection goes through `routePrompt` in `src/lib/router.server.ts` (probe health + required nodes, least-busy wins) so every render path routes the same way.

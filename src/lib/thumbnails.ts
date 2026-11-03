@@ -13,8 +13,12 @@ import slowmo from "@/assets/thumbnails/slowmo-upscale.jpg";
 import epic from "@/assets/thumbnails/epic-landscape.jpg";
 import talking from "@/assets/thumbnails/talking-avatar.jpg";
 import blogHero from "@/assets/thumbnails/blog-hero.jpg";
+import previs from "@/assets/thumbnails/previs.jpg";
+import depthMap from "@/assets/thumbnails/depth-map.jpg";
 
 export const WORKFLOW_THUMBNAILS: Record<string, string> = {
+  "previs-shot-drafts": previs,
+  "depth-map": depthMap,
   "lip-sync-basic": latentsync,
   "motion-control-animatediff": mimicmotion,
   "seedance-reference-motion": cinematicPortrait,
