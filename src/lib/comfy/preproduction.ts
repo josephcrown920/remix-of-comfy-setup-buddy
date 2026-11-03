@@ -25,14 +25,14 @@ function bounded(value: unknown, fallback: number, min: number, max: number) {
 }
 
 export function buildPrevisPrompt(params: Record<string, unknown>) {
-  const aspect = String(params.aspect_ratio ?? "9:16");
+  const aspect = String(params["aspect_ratio"] ?? "9:16");
   const [width, height] = aspect === "16:9" ? [512, 288] : aspect === "1:1" ? [512, 512] : [288, 512];
   return {
-    "1": { class_type: "CheckpointLoaderSimple", inputs: { ckpt_name: String(params.checkpoint ?? "v1-5-pruned-emaonly.safetensors") } },
-    "2": { class_type: "CLIPTextEncode", inputs: { text: `${String(params.prompt ?? "")}, rough monochrome storyboard sketch, clear blocking, cinematic composition, no lettering`, clip: ["1", 1] } },
+    "1": { class_type: "CheckpointLoaderSimple", inputs: { ckpt_name: String(params["checkpoint"] ?? "v1-5-pruned-emaonly.safetensors") } },
+    "2": { class_type: "CLIPTextEncode", inputs: { text: `${String(params["prompt"] ?? "")}, rough monochrome storyboard sketch, clear blocking, cinematic composition, no lettering`, clip: ["1", 1] } },
     "3": { class_type: "CLIPTextEncode", inputs: { text: "text, watermark, logo, bad anatomy, blurry", clip: ["1", 1] } },
-    "4": { class_type: "EmptyLatentImage", inputs: { width, height, batch_size: bounded(params.batch_size, 4, 1, 8) } },
-    "5": { class_type: "KSampler", inputs: { model: ["1", 0], positive: ["2", 0], negative: ["3", 0], latent_image: ["4", 0], seed: bounded(params.seed, 42, 0, 2147483647), steps: bounded(params.steps, 12, 4, 20), cfg: 7, sampler_name: "euler", scheduler: "normal", denoise: 1 } },
+    "4": { class_type: "EmptyLatentImage", inputs: { width, height, batch_size: bounded(params["batch_size"], 4, 1, 8) } },
+    "5": { class_type: "KSampler", inputs: { model: ["1", 0], positive: ["2", 0], negative: ["3", 0], latent_image: ["4", 0], seed: bounded(params["seed"], 42, 0, 2147483647), steps: bounded(params["steps"], 12, 4, 20), cfg: 7, sampler_name: "euler", scheduler: "normal", denoise: 1 } },
     "6": { class_type: "VAEDecode", inputs: { samples: ["5", 0], vae: ["1", 2] } },
     "7": { class_type: "SaveImage", inputs: { images: ["6", 0], filename_prefix: "aurora-previs" } },
   };
@@ -42,7 +42,7 @@ export function buildPrevisPrompt(params: Record<string, unknown>) {
 // Node definitions: github.com/kijai/ComfyUI-DepthAnythingV2/blob/main/nodes.py
 export function buildDepthMapPrompt(params: Record<string, unknown>) {
   return {
-    "1": { class_type: "LoadImage", inputs: { image: String(params.source_image ?? "") } },
+    "1": { class_type: "LoadImage", inputs: { image: String(params["source_image"] ?? "") } },
     "2": { class_type: "DownloadAndLoadDepthAnythingV2Model", inputs: { model: "depth_anything_v2_vitl_fp32.safetensors" } },
     "3": { class_type: "DepthAnything_V2", inputs: { da_model: ["2", 0], images: ["1", 0] } },
     "4": { class_type: "SaveImage", inputs: { images: ["3", 0], filename_prefix: "aurora-depth" } },
