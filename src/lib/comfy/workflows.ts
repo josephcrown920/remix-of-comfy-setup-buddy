@@ -668,9 +668,9 @@ export const WORKFLOWS: WorkflowDef[] = [
   },
   {
     id: "perform-anywhere-motion",
-    name: "Perform Anywhere — Animate Selected Angle",
+    name: "Perform Anywhere — Animate Promo Angle",
     description:
-      "Drive a selected cinematic still with your original performance video using MimicMotion.",
+      "Step 2 of the promo pipeline: drive any multi-angle shot with your original hook performance video (MimicMotion), so every angle syncs to the same take.",
     category: "perform-anywhere",
     icon: "Video",
     estimatedTime: "4-12 min",
