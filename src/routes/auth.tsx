@@ -11,6 +11,8 @@ import { Logo } from "@/components/studio/logo";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Sign in — Aurora Studio" },
       { name: "description", content: "Sign in to run your ComfyUI workflows." },
       { property: "og:title", content: "Sign in — Aurora Studio" },

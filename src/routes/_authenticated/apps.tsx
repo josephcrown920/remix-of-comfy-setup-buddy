@@ -20,6 +20,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/apps")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Workflow Apps — Aurora Studio" },
       { name: "description", content: "Turn ComfyUI workflows into shareable mini-apps with a simple form." },
       { property: "og:title", content: "Workflow Apps — Aurora Studio" },

@@ -13,6 +13,8 @@ import { Progress } from "@/components/ui/progress";
 export const Route = createFileRoute("/_authenticated/jobs")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Jobs — Aurora Studio" },
       { name: "description", content: "Track every ComfyUI render: status, progress and results." },
       { property: "og:title", content: "Jobs — Aurora Studio" },

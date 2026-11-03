@@ -1,4 +1,5 @@
 // Built-in ComfyUI workflow catalog (ported verbatim from the original app).
+import { PREPRODUCTION_WORKFLOWS } from "./preproduction";
 /* eslint-disable */
 const seedanceStyleMotionParams = (defaults: {
   prompt: string;
@@ -50,6 +51,7 @@ const seedanceStyleMotionParams = (defaults: {
 
 // Built-in workflow templates — no DB needed, these are code-defined
 export const WORKFLOWS: WorkflowDef[] = [
+  ...PREPRODUCTION_WORKFLOWS,
   {
     id: "lip-sync-basic",
     name: "Lip Sync",

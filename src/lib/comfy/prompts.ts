@@ -1,6 +1,7 @@
 // @ts-nocheck
 // ComfyUI prompt-graph builders (ported verbatim from the original app).
 /* eslint-disable */
+import { buildPrevisPrompt, buildDepthMapPrompt } from "./preproduction";
 /**
  * Build a ComfyUI API-format prompt graph for the given workflow.
  *
@@ -16,6 +17,10 @@ export function buildComfyPrompt(
   params: Record<string, unknown>
 ): Record<string, unknown> {
   switch (workflowId) {
+    case "previs-shot-drafts":
+      return buildPrevisPrompt(params);
+    case "depth-map":
+      return buildDepthMapPrompt(params);
     case "lip-sync-basic":
       return buildLipSyncPrompt(params);
     case "motion-control-animatediff":

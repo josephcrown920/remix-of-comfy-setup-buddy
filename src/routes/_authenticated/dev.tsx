@@ -14,6 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Comfy Dev — Aurora Studio" },
       { name: "description", content: "Test any ComfyUI workflow, open the live ComfyUI editor, and manage API keys for your own apps." },
       { property: "og:title", content: "Comfy Dev — Aurora Studio" },

@@ -7,6 +7,8 @@ import { heroImage, WORKFLOW_THUMBNAILS } from "@/lib/thumbnails";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Aurora — Run ComfyUI workflows without the node graph" },
       { name: "description", content: "Connect your ComfyUI GPU and run lip sync, motion control, image and video workflows from simple forms." },
       { property: "og:title", content: "Aurora — ComfyUI Studio" },
