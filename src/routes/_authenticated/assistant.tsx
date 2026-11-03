@@ -13,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/_authenticated/assistant")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Assistant & Video Agent — Aurora Studio" },
       { name: "description", content: "Ask the AI assistant about ComfyUI, or let the video agent plan shots and fill a workflow for you." },
       { property: "og:title", content: "Assistant & Video Agent — Aurora Studio" },

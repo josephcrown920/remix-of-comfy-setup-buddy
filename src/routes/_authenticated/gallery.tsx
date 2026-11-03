@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/gallery")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Gallery — Aurora Studio" },
       { name: "description", content: "Every image, video and audio file your workflows produced." },
       { property: "og:title", content: "Gallery — Aurora Studio" },

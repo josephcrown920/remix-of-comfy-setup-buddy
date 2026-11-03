@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Choose a new password — Aurora Studio" },
       { name: "description", content: "Set a new password for your Aurora Studio account." },
       { property: "og:title", content: "Choose a new password — Aurora Studio" },

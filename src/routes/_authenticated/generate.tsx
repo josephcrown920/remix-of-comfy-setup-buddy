@@ -18,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/generate")({
   validateSearch: z.object({ workflow: z.string().optional(), category: z.string().optional() }),
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Workflows — Aurora Studio" },
       { name: "description", content: "Pick a ComfyUI template and render it on your GPU." },
       { property: "og:title", content: "Workflows — Aurora Studio" },
