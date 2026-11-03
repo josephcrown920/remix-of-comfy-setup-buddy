@@ -305,9 +305,9 @@ export const WORKFLOWS: WorkflowDef[] = [
   },
   {
     id: "perform-anywhere-angles",
-    name: "Perform Anywhere — Five Angles",
+    name: "Perform Anywhere — Multi-Angle Promo Studio",
     description:
-      "Combine your identity, wardrobe, location, pose, and prop references into five cinematic stills, then choose one for motion transfer.",
+      "Step 1 of the promo pipeline: lock the performer with 5 reference anchors (face, outfit, location, pose, prop) and generate a batch of multi-angle shots of the same performance to promote the song's hook.",
     category: "perform-anywhere",
     icon: "Camera",
     estimatedTime: "5-15 min",
