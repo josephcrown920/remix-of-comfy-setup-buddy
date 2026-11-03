@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string
+          id: number
+          key_hash: string
+          last_used_at: string | null
+          name: string
+          owner_id: string
+          prefix: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          key_hash: string
+          last_used_at?: string | null
+          name: string
+          owner_id: string
+          prefix: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          key_hash?: string
+          last_used_at?: string | null
+          name?: string
+          owner_id?: string
+          prefix?: string
+        }
+        Relationships: []
+      }
       batches: {
         Row: {
           batch_type: string
@@ -231,6 +261,7 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          comfy_org_api_key: string | null
           comfy_url: string
           model_assignments: Json
           routing_mode: string
@@ -240,6 +271,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          comfy_org_api_key?: string | null
           comfy_url?: string
           model_assignments?: Json
           routing_mode?: string
@@ -249,6 +281,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          comfy_org_api_key?: string | null
           comfy_url?: string
           model_assignments?: Json
           routing_mode?: string
